@@ -76,7 +76,7 @@ time_now = datetime.now()
 print (iss_data["iss_position"])
 
 
-print(check_position(iss_lat,iss_long)
+print(check_position(iss_lat,iss_long))
 
 
 
