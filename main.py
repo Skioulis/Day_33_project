@@ -1,5 +1,6 @@
 from http.client import responses
 from sqlite3.dbapi2 import paramstyle
+from xml.etree.ElementTree import tostring
 
 import requests
 from datetime import datetime
@@ -14,69 +15,70 @@ def is_between(a, x, b):
 
 # Checks if iss is visible from my position
 
-def check_position(current_lat, current_long):
-    # if is_between(current_lat - 5, MY_LAT, current_lat + 5):
-    #     print("lat Is between")
-    # else:
-    #     print("lat is not between")
-    #
-    # if is_between(current_long - 5, MY_LNG, current_long + 5):
-    #     print("long Is between")
-    # else:
-    #     print("long is not between")
-    #
-    # if ((is_between(current_lat - 5, MY_LAT, current_lat + 5))
-    #         and (is_between(current_long - 5, MY_LNG, current_long + 5))):
-    #     print("It is Visible")
-    # else:
-    #     print ("Not visible")
+def check_position():
 
-    return ((is_between(current_lat - 5, MY_LAT, current_lat + 5))
-            and (is_between(current_long - 5, MY_LNG, current_long + 5)))
+    response = requests.get(url="http://api.open-notify.org/iss-now.json")
+    response.raise_for_status()
+    iss_data = response.json()
+
+    print(iss_data["iss_position"]) # to be DELETED
+
+    iss_lat = float(iss_data["iss_position"]["latitude"])
+    iss_long = float(iss_data["iss_position"]["longitude"])
+
+    return ((is_between(iss_lat - 5, MY_LAT, iss_lat + 5))
+            and (is_between(iss_long - 5, MY_LNG, iss_long + 5)))
 
 
 
-parameters = {
-    "lat": MY_LAT,
-    "lng": MY_LNG,
-    "formatted": 0
-}
+
+
+
 
 
 # This section get the iss current p[ostiont
 
 
-response = requests.get(url="http://api.open-notify.org/iss-now.json")
-response.raise_for_status()
-iss_data = response.json()
 
-
-iss_lat=float(iss_data["iss_position"]["latitude"])
-iss_long=float(iss_data["iss_position"]["longitude"])
 
 
 
 
 # This section checks my sunset and sunrise at my location
+def is_night():
+    parameters = {
+        "lat": MY_LAT,
+        "lng": MY_LNG,
+        "formatted": 0
+    }
 
-response = requests.get(url="https://api.sunrise-sunset.org/json", params=parameters)
-response.raise_for_status()
-# (39.359008, 22.953859)
-data = response.json()
-sunrise = int(data["results"]["sunrise"].split("T")[1].split(":")[0])
-sunset = int(data["results"]["sunset"].split("T")[1].split(":")[0])
+    response = requests.get(url="https://api.sunrise-sunset.org/json", params=parameters)
+    response.raise_for_status()
+    # (39.359008, 22.953859)
+    data = response.json()
+    sunrise = int(data["results"]["sunrise"].split("T")[1].split(":")[0])
+    sunset = int(data["results"]["sunset"].split("T")[1].split(":")[0])
+    time_now = datetime.now().hour
+    if time_now >= sunset or time_now<= sunrise:
+        print("is night") # to be DELETED
+        return True
+    else:
+        print("is Day") # to be DELETED
+        return False
 
 
 
-
-time_now = datetime.now()
 
 
 # to be deleted
-print (iss_data["iss_position"])
 
 
-print(check_position(iss_lat,iss_long))
+
+if check_position() and is_night() :
+    print("look UP")
+
+else:
+    print("cant see")
 
 
 
